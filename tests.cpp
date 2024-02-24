@@ -1,5 +1,7 @@
 #include "lineq.h"
+#include <cmath>
 #include <gtest/gtest.h>
+#include <vector>
 
 TEST(LineqTest, TestGetHilbertian) {
   auto matrix = get_hilbertian(3);
@@ -182,4 +184,147 @@ TEST(CholeskyTest, SolveCholesky2) {
   for (size_t i = 0; i < result2.size(); ++i) {
     EXPECT_DOUBLE_EQ(result2[i], expected2[i]);
   }
+}
+
+// Test case for the multiply function
+TEST(MultiplyTest, Multiplication) {
+  // Test input matrices
+  std::vector<std::vector<double>> A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  std::vector<double> x = {1, 2, 3};
+
+  // Expected output vector
+  std::vector<double> expected_result = {14, 32, 50};
+
+  // Call the multiply function
+  std::vector<double> result = multiply(A, x);
+
+  // Check if the result matches the expected output
+  ASSERT_EQ(result, expected_result);
+}
+
+TEST(DRSeperationTest, Handles3x3Matrix) {
+  std::vector<std::vector<double>> A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+
+  auto [D, R] = DR_seperation(A);
+
+  std::vector<std::vector<double>> expectedD = {
+      {1, 0, 0}, {0, 5, 0}, {0, 0, 9}};
+
+  std::vector<std::vector<double>> expectedR = {
+      {0, 2, 3}, {4, 0, 6}, {7, 8, 0}};
+
+  EXPECT_EQ(D, expectedD);
+  EXPECT_EQ(R, expectedR);
+}
+
+TEST(InvertDiagonalMatrixTest, Handles3x3Matrix) {
+  std::vector<std::vector<double>> D = {{1, 0, 0}, {0, 2, 0}, {0, 0, 3}};
+
+  auto inv_D = invert_diagonal_matrix(D);
+
+  std::vector<std::vector<double>> expected_inv_D = {
+      {1, 0, 0}, {0, 0.5, 0}, {0, 0, 1.0 / 3}};
+
+  EXPECT_EQ(inv_D, expected_inv_D);
+}
+
+TEST(SingleJacobiIterationTest, Handles3x3Matrix) {
+  std::vector<std::vector<double>> inv_D = {
+      {1, 0, 0}, {0, 0.5, 0}, {0, 0, 1.0 / 3}};
+
+  std::vector<std::vector<double>> R = {{0, 2, 3}, {4, 0, 6}, {7, 8, 0}};
+
+  std::vector<double> y = {1, 2, 3};
+  std::vector<double> x_k = {0, 0, 0};
+
+  auto result = single_jacobi_itteration(inv_D, R, y, x_k);
+
+  std::vector<double> expected_result = {1, 1, 1};
+
+  for (int i = 0; i < expected_result.size(); i++) {
+    EXPECT_NEAR(result[i], expected_result[i], 1e-9);
+  }
+}
+
+TEST(GetInteriorPointsTest, TestSize) {
+  int n = 5;
+  auto result = get_interior_points(n);
+  EXPECT_EQ(result.size(), n - 1);
+  for (const auto &row : result) {
+    EXPECT_EQ(row.size(), n - 1);
+  }
+}
+
+// TEST(GetInteriorPointsTest, TestValues) {
+//   int n = 5;
+//   double h = M_PI / n;
+//   auto result = get_interior_points(n);
+//   for (int i = 0; i < n - 1; i++) {
+//     for (int j = 0; j < n - 1; j++) {
+//       EXPECT_DOUBLE_EQ(result[i][j], (i + 1) * h);
+//     }
+//   }
+// }
+
+// TEST(GetInteriorPointsTest, TestBoundary) {
+//   int n = 5;
+//   auto result = get_interior_points(n);
+//   EXPECT_DOUBLE_EQ(result[0][0], M_PI / n);
+//   EXPECT_DOUBLE_EQ(result[n - 2][n - 2], (n - 1) * M_PI / n);
+// }
+
+TEST(LaplacianMatrixTest, Size2) {
+  auto result = get_discrete_laplacian_matrix(2);
+  auto laplacian = result.first;
+  auto laplacian_indices = result.second;
+  std::vector<std::vector<double>> expected_laplacian = {
+      {-4, 1, 1, 0}, {1, -4, 0, 1}, {1, 0, -4, 1}, {0, 1, 1, -4}};
+  for (int i = 0; i < laplacian.size(); i++) {
+    for (int j = 0; j < laplacian[0].size(); j++) {
+      EXPECT_DOUBLE_EQ(laplacian[i][j],
+                       expected_laplacian[i][laplacian_indices[i][j]]);
+    }
+  }
+}
+
+TEST(compressed_DR_seperationTest, Case1) {
+  auto result = compressed_DR_seperation({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}},
+                                         {{0, 1, 2}, {0, 1, 2}, {0, 1, 2}});
+  auto D = std::get<0>(result);
+
+  std::vector<double> expectedD = {1, 5, 9};
+
+  auto R = std::get<1>(result);
+  auto R_indices = std::get<2>(result);
+
+  std::vector<std::vector<double>> expectedR = {{2, 3}, {4, 6}, {7, 8}};
+  std::vector<std::vector<int>> expectedR_indices = {{1, 2}, {0, 2}, {0, 1}};
+
+  EXPECT_EQ(D, expectedD);
+  EXPECT_EQ(R, expectedR);
+  EXPECT_EQ(R_indices, expectedR_indices);
+}
+
+TEST(MultiplySparseTest, Test1) {
+  std::vector<std::vector<double>> A = {{1, 2}, {3, 4}};
+  std::vector<std::vector<int>> A_idxs = {{0, 1}, {0, 1}};
+  std::vector<double> x = {1, 2};
+  std::vector<double> expected = {5, 11};
+  ASSERT_EQ(multiply_sparse(A, A_idxs, x), expected);
+}
+
+TEST(MultiplySparseTest, Test2) {
+  std::vector<std::vector<double>> A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  std::vector<std::vector<int>> A_idxs = {{0, 1, 2}, {0, 1, 2}, {0, 1, 2}};
+  std::vector<double> x = {1, 2, 3};
+  std::vector<double> expected = {14, 32, 50};
+  ASSERT_EQ(multiply_sparse(A, A_idxs, x), expected);
+}
+
+TEST(MultiplySparseTest, Test3) {
+  std::vector<std::vector<double>> A = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+  std::vector<std::vector<int>> A_idxs = {{0, 1, 2}, {0, 1, 2}, {0, 1, 2}};
+  std::vector<double> x = {1, 2, 3};
+  std::vector<double> expected = {1, 2, 3};
+  ASSERT_EQ(multiply_sparse(A, A_idxs, x), expected);
 }

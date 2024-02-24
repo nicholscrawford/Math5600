@@ -39,10 +39,53 @@ std::vector<std::vector<double>>
 multiply(const std::vector<std::vector<double>> &A,
          const std::vector<std::vector<double>> &B);
 
+std::vector<double> multiply(const std::vector<std::vector<double>> &A,
+                             const std::vector<double> &x);
+
+const std::vector<std::vector<double>>
+multiply(double k, const std::vector<std::vector<double>> &A);
+
 std::vector<double> subtract(const std::vector<double> &A,
                              const std::vector<double> &B);
 
 std::vector<std::vector<double>>
 transpose(const std::vector<std::vector<double>> &A);
+
+std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>>>
+DR_seperation(const std::vector<std::vector<double>> &A);
+
+std::tuple<std::vector<double>, std::vector<std::vector<double>>,
+           std::vector<std::vector<int>>>
+compressed_DR_seperation(const std::vector<std::vector<double>> &A,
+                         const std::vector<std::vector<int>> &A_indices);
+
+std::vector<std::vector<double>>
+invert_diagonal_matrix(const std::vector<std::vector<double>> &D);
+
+std::vector<double> invert_diagonal_matrix(const std::vector<double> &D);
+
+std::vector<double> multiply_sparse(const std::vector<std::vector<double>> &A,
+                                    const std::vector<std::vector<int>> &A_idxs,
+                                    const std::vector<double> &x);
+
+std::vector<double> sparse_single_jacobi_itteration(
+    const std::vector<double> &inv_D, const std::vector<std::vector<double>> &R,
+    const std::vector<std::vector<int>> &R_indices,
+    const std::vector<double> &y, const std::vector<double> &x_k);
+
+std::vector<double>
+single_jacobi_itteration(const std::vector<std::vector<double>> &inv_D,
+                         const std::vector<std::vector<double>> &R,
+                         const std::vector<double> &y,
+                         const std::vector<double> &x_k);
+
+std::vector<std::vector<std::pair<double, double>>> get_interior_points(int n);
+
+std::vector<std::vector<double>>
+get_laplacian_approximation(const std::vector<std::vector<double>> &X,
+                            const std::vector<std::vector<double>> &Y);
+
+std::pair<std::vector<std::vector<double>>, std::vector<std::vector<int>>>
+get_discrete_laplacian_matrix(int size);
 
 #endif

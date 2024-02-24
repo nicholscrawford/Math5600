@@ -289,6 +289,28 @@ multiply(const std::vector<std::vector<double>> &A,
 }
 
 /**
+ * Multiplies a matrix represented as vectors of vectors of doubles, and a
+ * vector of doubles. i.e. A * x = y
+ *
+ * @param A The matrix.
+ * @param B The vector.
+ * @return The resulting vector after multiplication.
+ */
+std::vector<double> multiply(const std::vector<std::vector<double>> &A,
+                             const std::vector<double> &x) {
+  int n1 = A.size();
+  int n2 = x.size();
+
+  std::vector<double> result(n1, 0);
+  for (int i = 0; i < n1; i++) {
+    for (int j = 0; j < n2; j++) {
+      result[i] += A[i][j] * x[j];
+    }
+  }
+  return result;
+}
+
+/**
  * @brief Subtracts two vectors element-wise.
  *
  * This function subtracts each element of vector A from the corresponding
@@ -334,4 +356,323 @@ transpose(const std::vector<std::vector<double>> &A) {
     }
   }
   return result;
+}
+
+/**
+ * @brief Separates the given matrix A into two matrices D and R.
+ *
+ * The matrix A is separated into two matrices D and R, where D is a diagonal
+ * matrix containing the diagonal elements of A, and R is a matrix containing
+ * the remaining elements of A.
+ *
+ * @param A The input matrix.
+ * @return A std::pair containing the matrices D and R.
+ */
+std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>>>
+DR_seperation(const std::vector<std::vector<double>> &A) {
+  int n = A.size();
+  std::vector<std::vector<double>> D(n, std::vector<double>(n, 0));
+  std::vector<std::vector<double>> R(n, std::vector<double>(n, 0));
+
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      if (i == j) {
+        D[i][j] = A[i][j];
+      } else {
+        R[i][j] = A[i][j];
+      }
+    }
+  }
+  return std::make_pair(D, R);
+}
+
+/**
+ * @brief Inverts a diagonal matrix.
+ *
+ * This function takes a diagonal matrix represented as a 2D vector and returns
+ * its inverse. The input matrix must be square and have non-zero diagonal
+ * elements.
+ *
+ * @param D The diagonal matrix to be inverted.
+ * @return The inverse of the input diagonal matrix.
+ */
+std::vector<std::vector<double>>
+invert_diagonal_matrix(const std::vector<std::vector<double>> &D) {
+  int n = D.size();
+  std::vector<std::vector<double>> inv_D(n, std::vector<double>(n, 0));
+  for (int i = 0; i < n; i++) {
+    inv_D[i][i] = 1.0 / D[i][i];
+  }
+  return inv_D;
+}
+
+/**
+ * @brief Inverts a diagonal matrix.
+ *
+ * This function takes a diagonal matrix represented as a 2D vector and returns
+ * its inverse. The input matrix must be square and have non-zero diagonal
+ * elements.
+ *
+ * @param D The diagonal matrix to be inverted.
+ * @return The inverse of the input diagonal matrix.
+ */
+std::vector<double> invert_diagonal_matrix(const std::vector<double> &D) {
+  int n = D.size();
+  std::vector<double> inv_D(n, 0);
+  for (int i = 0; i < n; i++) {
+    inv_D[i] = 1.0 / D[i];
+  }
+  return inv_D;
+}
+
+/**
+ * @brief Perform DR Seperation on a compressed matrix.
+ *
+ * @param A compressed values of a, where each row has it's zeros removed, and
+ * the indicies are kept in
+ * @param A_indices here.
+ * @return std::tuple<std::vector<double>, std::vector<std::vector<double>>,
+           std::vector<std::vector<double>>>
+ * returns diagonal as a vector, and the remainder as two vector of vectors
+ representing a compressed matrix.
+ */
+std::tuple<std::vector<double>, std::vector<std::vector<double>>,
+           std::vector<std::vector<int>>>
+compressed_DR_seperation(const std::vector<std::vector<double>> &A,
+                         const std::vector<std::vector<int>> &A_indices) {
+  int n = A.size();
+  std::vector<double> D(n, 0);
+  std::vector<std::vector<double>> R(n, std::vector<double>());
+  std::vector<std::vector<int>> R_indices(n, std::vector<int>());
+
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < A[i].size(); j++) {
+      if (i == A_indices[i][j]) {
+        D[i] = A[i][j];
+      } else {
+        R[i].push_back(A[i][j]);
+        R_indices[i].push_back(A_indices[i][j]);
+      }
+    }
+  }
+  return std::make_tuple(D, R, R_indices);
+}
+
+/**
+ * Performs a single Jacobi iteration to solve a linear system of equations.
+ *
+ * @param inv_D The inverse of the diagonal matrix D.
+ * @param R The matrix R.
+ * @param y The vector y.
+ * @param x_k The vector x_k.
+ * @return The updated vector x^(k+1) after the Jacobi iteration.
+ */
+std::vector<double>
+single_jacobi_itteration(const std::vector<std::vector<double>> &inv_D,
+                         const std::vector<std::vector<double>> &R,
+                         const std::vector<double> &y,
+                         const std::vector<double> &x_k) {
+  // x^(k+1) = D-1(y – Rx^(k))
+  std::vector<double> Rx_k = multiply(R, x_k);
+  std::vector<double> y_minus_Rx_k = subtract(y, Rx_k);
+  std::vector<double> D_inv_y_minus_Rx_k = multiply(inv_D, y_minus_Rx_k);
+  return D_inv_y_minus_Rx_k;
+}
+
+/**
+ * Multiplies a sparse matrix represented by a vector of vectors with a vector.
+ *
+ * @param A The sparse matrix represented by a vector of vectors.
+ * @param A_idxs The indices of non-zero elements in the sparse matrix.
+ * @param x The vector to be multiplied with the sparse matrix.
+ * @return The result of multiplying the sparse matrix with the vector.
+ */
+std::vector<double> multiply_sparse(const std::vector<std::vector<double>> &A,
+                                    const std::vector<std::vector<int>> &A_idxs,
+                                    const std::vector<double> &x) {
+  int n = A.size();
+  std::vector<double> result(n, 0);
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < A[i].size(); j++) {
+      result[i] += A[i][j] * x[A_idxs[i][j]];
+    }
+  }
+  return result;
+}
+
+/**
+ * Performs element-wise multiplication of two vectors.
+ *
+ * @param A The first vector.
+ * @param B The second vector.
+ * @return The resulting vector after element-wise multiplication.
+ */
+std::vector<double> elementwise_multiply(const std::vector<double> &A,
+                                         const std::vector<double> &B) {
+  int n = A.size();
+  std::vector<double> result(n, 0);
+  for (int i = 0; i < n; i++) {
+    result[i] = A[i] * B[i];
+  }
+  return result;
+}
+
+/**
+ * Performs a sparse single Jacobi iteration.
+ *
+ * This function calculates the next iteration of the Jacobi method for solving
+ * a linear system of equations. It takes the inverted diagonal matrix, the
+ * remainder matrix, the compression information of the remainder matrix, the
+ * vector y, and the current approximation x_k as input. It returns the updated
+ * approximation x^(k+1) according to the formula: x^(k+1) = D^(-1)(y - Rx^(k)),
+ * where D^(-1) is the inverted diagonal matrix, R is the remainder matrix, and
+ * x^(k) is the current approximation.
+ *
+ * @param inv_D The inverted diagonal matrix as a vector. It can be obtained by
+ *             element-wise inversion of the diagonal matrix.
+ * @param R The remainder matrix in dense form. It is represented as a 2D vector
+ *          with each row containing the non-zero elements of a row in the
+ *          remainder matrix.
+ * @param R_indices The compression information of the remainder matrix. It is
+ *                  a 2D vector with each row containing the indices of the
+ *                  non-zero elements in the corresponding row of the remainder
+ *                  matrix.
+ * @param y The vector y in the equation.
+ * @param x_k The current approximation x^(k).
+ * @return The updated approximation x^(k+1).
+ */
+std::vector<double> sparse_single_jacobi_itteration(
+    const std::vector<double> &inv_D, // inverted diagonal matrix as a vector,
+                                      // can just elementewise multiply.
+    const std::vector<std::vector<double>>
+        &R, // Remainder matrix in dense form -- i.e [[0, 0, 3], [0, 3, 0]]
+            // represented as [[3],[3]]
+    const std::vector<std::vector<int>>
+        &R_indices, // Remainder matrix compression information, the indexes
+                    // inorder of the R mat. i.e. [[2], [3]] for the above
+                    // example
+    const std::vector<double> &y, const std::vector<double> &x_k) {
+  // x^(k+1) = D-1(y – Rx^(k))
+  std::vector<double> Rx_k = multiply_sparse(R, R_indices, x_k);
+  std::vector<double> y_minus_Rx_k = subtract(y, Rx_k);
+  std::vector<double> D_inv_y_minus_Rx_k =
+      elementwise_multiply(inv_D, y_minus_Rx_k);
+  return D_inv_y_minus_Rx_k;
+}
+
+/**
+ * Multiplies each element of a matrix by a scalar value.
+ *
+ * @param k The scalar value to multiply the matrix by.
+ * @param A The matrix to be multiplied.
+ * @return The resulting matrix after multiplying each element by the scalar
+ * value.
+ */
+const std::vector<std::vector<double>>
+multiply(double k, const std::vector<std::vector<double>> &A) {
+  int n = A.size();
+  int m = A[0].size();
+  std::vector<std::vector<double>> result(n, std::vector<double>(m, 0));
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < m; j++) {
+      result[i][j] = k * A[i][j];
+    }
+  }
+  return result;
+}
+
+/**
+ * @brief Returns a vector of vectors representing the interior points of a
+ * square.
+ *
+ * The square [0, π]×[0, π] with zero boundary condition is divided into a grid
+ * of n−1×n−1 equally spaced interior points.
+ *
+ * @param n The number (+1) of points in each dimension of the grid.
+ * @return std::vector<std::vector<std::pair<double, double>>>
+
+ A vector of vectors of pairs, representing the
+ * interior points' x and y.
+ */
+std::vector<std::vector<std::pair<double, double>>> get_interior_points(int n) {
+  //   the square [0, π]×[0, π] with zero boundary
+  // condition. Use a grid of n−1×n−1 equally spaced interior points. (xj , yi)
+  // = (jh, ih) where h = π n . both j, i = 1, . . . , n − 1.
+  std::vector<std::vector<std::pair<double, double>>> interior_points(
+      n - 1, std::vector<std::pair<double, double>>(n - 1));
+
+  double h = M_PI / n;
+  for (int i = 1; i < n; i++) {
+    for (int j = 1; j < n; j++) {
+      interior_points[i - 1][j - 1].first = j * h;
+      interior_points[i - 1][j - 1].second = i * h;
+    }
+  }
+  return interior_points;
+}
+
+/**
+ * Calculates the Laplacian matrix for the 2D square finite differencing
+ * discrete Laplacian approximation, ignoring spacing term.
+ *
+ * @param A The input matrix.
+ * @return The Laplacian approximation matrix, and it's compression information.
+ */
+std::pair<std::vector<std::vector<double>>, std::vector<std::vector<int>>>
+get_discrete_laplacian_matrix(int size) {
+  // Create the laplacian matrix (ignoring spacing term)
+  int points_size = size;
+  int matrix_size = size * size;
+
+  std::vector<std::vector<double>> laplacian(matrix_size,
+                                             std::vector<double>(0));
+  std::vector<std::vector<int>> laplacian_indices(matrix_size,
+                                                  std::vector<int>(0));
+
+  // Ajacency matrix basically, with the diagonals as -4, and their neighbors
+  // as 1. The ordering determines which are neighbors. Following the convention
+  // in class, 0  is bottom left, 1 is bottom right, 2 is top left, 3 is top
+  // right. etc. So, for any diagonal, the neigbors are 1, and +- the
+  // points_size are 1.
+
+  /**
+   * * 1  *
+   * 1 -4 1
+   * * 1  *
+   *
+   * [
+   * [0 1 0 1 -4 1 0 1 0],
+   * [...],
+   * ...
+   * ]
+   *
+   */
+
+  //
+  for (int i = 0; i < matrix_size; i++) {
+    // Below
+    if (i - points_size >= 0) {
+      laplacian[i].push_back(1);
+      laplacian_indices[i].push_back(i - points_size);
+    }
+    // Above
+    if (i + points_size < matrix_size) {
+      laplacian[i].push_back(1);
+      laplacian_indices[i].push_back(i + points_size);
+    }
+    // Right
+    if (i % points_size + 1 < points_size) {
+      laplacian[i].push_back(1);
+      laplacian_indices[i].push_back(i + 1);
+    }
+    // Left
+    if (i % points_size - 1 >= 0) {
+      laplacian[i].push_back(1);
+      laplacian_indices[i].push_back(i - 1);
+    }
+    laplacian[i].push_back(-4);
+    laplacian_indices[i].push_back(i);
+  }
+
+  return std::make_pair(laplacian, laplacian_indices);
 }
