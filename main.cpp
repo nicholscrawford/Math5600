@@ -75,5 +75,127 @@ int main(int, char **) {
   printVec("Cholesky Error for single column: ", subtract(x1, x1_cholesky));
   printVec("Cholesky Error for linear combination: ",
            subtract(x2, x2_cholesky));
+
+  // Perform jacobi iteritive method on the discrete laplacian on a square
+  auto pair = get_discrete_laplacian_matrix(2);
+
+  auto eigenvector_1 = std::vector<double>{1, -1, -1, 1};
+  auto eigenvector_2 = std::vector<double>{1, 1, 1, 1};
+  auto eigenvector_3 = std::vector<double>{0, -1, 1, 0};
+  auto eigenvector_4 = std::vector<double>{-1, 0, 0, 1};
+
+  auto eigenvectors = std::vector<std::vector<double>>{
+      eigenvector_1, eigenvector_2, eigenvector_3, eigenvector_4};
+
+  auto compressed_laplacian = pair.first;
+  auto compressed_laplacian_indices = pair.second;
+
+  auto tuple = compressed_DR_seperation(compressed_laplacian,
+                                        compressed_laplacian_indices);
+  auto D = std::get<0>(tuple);
+  auto R = std::get<1>(tuple);
+  auto R_indices = std::get<2>(tuple);
+
+  auto inv_D = invert_diagonal_matrix(D);
+
+  std::vector<double> x0 = {0, 0, 0, 0};
+
+  // For each eigenvector, solve the system using the Jacobi method, and
+  // estimate the eigenvalue.
+  for (int i = 0; i < eigenvectors.size(); i++) {
+    auto y = eigenvectors[i];
+    auto x = x0;
+    // Do 50 itteraions of the Jacobi method
+    for (int j = 0; j < 50; j++) {
+      x = sparse_single_jacobi_itteration(inv_D, R, R_indices, y, x);
+    }
+    // Estimate the eigenvalue
+    auto eigenvalue = dot_product(y, y) / dot_product(y, x);
+    std::cout << "Eigenvalue " << i + 1 << " Jacobi estimate is: " << eigenvalue
+              << std::endl;
+  }
+
+  // For each eigenvector, solve the system using the Gauss siedel method, and
+  // estimate the eigenvalue.
+  for (int i = 0; i < eigenvectors.size(); i++) {
+    auto y = eigenvectors[i];
+    auto x = x0;
+    // Do 50 itteraions of the Gauss siedel method
+    for (int j = 0; j < 50; j++) {
+      x = sparse_single_gauss_seidel_itteration(
+          compressed_laplacian, compressed_laplacian_indices, x, y);
+    }
+    // Estimate the eigenvalue
+    auto eigenvalue = dot_product(y, y) / dot_product(y, x);
+    std::cout << "Eigenvalue " << i + 1
+              << " Gauss Seidel estimate is: " << eigenvalue << std::endl;
+  }
+
+  std::vector<double> eigenvalues = {-6.0, -2.0, -4.0, -4.0};
+  std::vector<std::vector<double>> expected_x_per_eigenvector = {
+      multiply(1 / -6.0, eigenvector_1), multiply(1 / -2.0, eigenvector_2),
+      multiply(1 / -4.0, eigenvector_3), multiply(1 / -4.0, eigenvector_4)};
+
+  // For each eigenvector, solve the system using the Jacobi method, and examine
+  // and print convergence rates for each eigenvector
+  for (int i = 0; i < eigenvectors.size(); i++) {
+    auto y = eigenvectors[i];
+    auto x = x0;
+    std::vector<double> x_expected = expected_x_per_eigenvector[i];
+    int iterations = 0;
+    double error_norm = 0.0;
+    double epsilon = 1e-25; // Convergence threshold
+    do {
+      x = sparse_single_jacobi_itteration(inv_D, R, R_indices, y, x);
+      auto error = subtract(x, x_expected);
+      error_norm = dot_product(error, error);
+      iterations++;
+      //   std::cout << "Error norm for eigenvector " << i + 1 << " after "
+      //             << iterations << " iterations is: " << error_norm <<
+      //             std::endl;
+    } while (error_norm > epsilon);
+    std::cout << "Convergence achieved for eigenvector " << i + 1 << " after "
+              << iterations << " Jacobi iterations with epsilon " << epsilon
+              << "." << std::endl;
+  }
+
+  // For each eigenvector, solve the system using the Gauss siedel method, and
+  // examine and print convergence rates for each eigenvector
+  for (int i = 0; i < eigenvectors.size(); i++) {
+    auto y = eigenvectors[i];
+    auto x = x0;
+    std::vector<double> x_expected = expected_x_per_eigenvector[i];
+    int iterations = 0;
+    double error_norm = 0.0;
+    double epsilon = 1e-25; // Convergence threshold
+    do {
+      x = sparse_single_gauss_seidel_itteration(
+          compressed_laplacian, compressed_laplacian_indices, x, y);
+      auto error = subtract(x, x_expected);
+      error_norm = dot_product(error, error);
+      iterations++;
+      //   std::cout << "Error norm for eigenvector " << i + 1 << " after "
+      //             << iterations << " iterations is: " << error_norm <<
+      //             std::endl;
+    } while (error_norm > epsilon);
+    std::cout << "Convergence achieved for eigenvector " << i + 1 << " after "
+              << iterations << " Gauss Seidel iterations with epsilon "
+              << epsilon << "." << std::endl;
+  }
+
+  // Confirm that each pair of eigenvectors are orthogonal, and print
+  // confirmation.
+  for (int i = 0; i < eigenvectors.size(); i++) {
+    for (int j = i + 1; j < eigenvectors.size(); j++) {
+      auto dot_product_result = dot_product(eigenvectors[i], eigenvectors[j]);
+      if (dot_product_result == 0.0) {
+        std::cout << "Eigenvectors " << i + 1 << " and " << j + 1
+                  << " are orthogonal." << std::endl;
+      } else {
+        std::cout << "Eigenvectors " << i + 1 << " and " << j + 1
+                  << " are not orthogonal." << std::endl;
+      }
+    }
+  }
   return 0;
 }

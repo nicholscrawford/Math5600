@@ -2,7 +2,7 @@
 
 ## Description
 
-Code for the numerical analysis class. Solving linear systems of equations using elimination with pivoting.
+Code for the numerical analysis class. Solving linear systems of equations using elimination with pivoting. Solving systems of linear equations with iteritive methods, (great for sparse probelms).
 
 ## Installation
 

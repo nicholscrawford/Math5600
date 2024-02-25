@@ -560,6 +560,33 @@ std::vector<double> sparse_single_jacobi_itteration(
   return D_inv_y_minus_Rx_k;
 }
 
+std::vector<double> sparse_single_gauss_seidel_itteration(
+    const std::vector<std::vector<double>> &A,
+    const std::vector<std::vector<int>> &A_indices,
+    const std::vector<double> &x_k, const std::vector<double> &y) {
+  int n = A.size();
+  std::vector<double> x_k_plus_1(n, 0);
+  for (int i = 0; i < n; i++) {
+    double sum = 0;
+    double a_ii = 0; // Note this will cause problems if there is no diagonal
+                     // element, but I'm not checking for that absence.
+    for (int _ = 0; _ < A[i].size(); _++) {
+      int j = A_indices[i][_];
+      if (j > i) {
+        sum += A[i][_] * x_k[j];
+      }
+      if (j < i) {
+        sum += A[i][_] * x_k_plus_1[j];
+      }
+      if (j == i) {
+        a_ii = A[i][_];
+      }
+    }
+    x_k_plus_1[i] = (y[i] - sum) / a_ii;
+  }
+  return x_k_plus_1;
+}
+
 /**
  * Multiplies each element of a matrix by a scalar value.
  *
@@ -577,6 +604,23 @@ multiply(double k, const std::vector<std::vector<double>> &A) {
     for (int j = 0; j < m; j++) {
       result[i][j] = k * A[i][j];
     }
+  }
+  return result;
+}
+
+/**
+ * Multiplies each element of a vector by a scalar value.
+ *
+ * @param k The scalar value to multiply the vector by.
+ * @param A The vector to be multiplied.
+ * @return The resulting vector after multiplying each element by the scalar
+ * value.
+ */
+const std::vector<double> multiply(double k, const std::vector<double> &A) {
+  int n = A.size();
+  std::vector<double> result(n, 0);
+  for (int i = 0; i < n; i++) {
+    result[i] = k * A[i];
   }
   return result;
 }
@@ -675,4 +719,19 @@ get_discrete_laplacian_matrix(int size) {
   }
 
   return std::make_pair(laplacian, laplacian_indices);
+}
+
+/**
+ * Calculates the dot product of two vectors.
+ *
+ * @param A The first vector.
+ * @param B The second vector.
+ * @return The dot product of the two vectors.
+ */
+double dot_product(const std::vector<double> &A, const std::vector<double> &B) {
+  double result = 0;
+  for (int i = 0; i < A.size(); i++) {
+    result += A[i] * B[i];
+  }
+  return result;
 }

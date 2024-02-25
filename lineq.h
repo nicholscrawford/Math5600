@@ -45,6 +45,8 @@ std::vector<double> multiply(const std::vector<std::vector<double>> &A,
 const std::vector<std::vector<double>>
 multiply(double k, const std::vector<std::vector<double>> &A);
 
+const std::vector<double> multiply(double k, const std::vector<double> &A);
+
 std::vector<double> subtract(const std::vector<double> &A,
                              const std::vector<double> &B);
 
@@ -73,6 +75,11 @@ std::vector<double> sparse_single_jacobi_itteration(
     const std::vector<std::vector<int>> &R_indices,
     const std::vector<double> &y, const std::vector<double> &x_k);
 
+std::vector<double> sparse_single_gauss_seidel_itteration(
+    const std::vector<std::vector<double>> &A,
+    const std::vector<std::vector<int>> &A_indices,
+    const std::vector<double> &x_k, const std::vector<double> &y);
+
 std::vector<double>
 single_jacobi_itteration(const std::vector<std::vector<double>> &inv_D,
                          const std::vector<std::vector<double>> &R,
@@ -87,5 +94,7 @@ get_laplacian_approximation(const std::vector<std::vector<double>> &X,
 
 std::pair<std::vector<std::vector<double>>, std::vector<std::vector<int>>>
 get_discrete_laplacian_matrix(int size);
+
+double dot_product(const std::vector<double> &A, const std::vector<double> &B);
 
 #endif
