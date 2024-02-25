@@ -743,3 +743,17 @@ double dot_product(const std::vector<double> &A, const std::vector<double> &B) {
   }
   return result;
 }
+
+/**
+ * Calculates the magnitude of a vector.
+ *
+ * @param vec The vector for which to calculate the magnitude.
+ * @return The magnitude of the vector.
+ */
+double magnitude(const std::vector<double> &vec) {
+  double sum = 0.0;
+  for (double val : vec) {
+    sum += val * val;
+  }
+  return sqrt(sum);
+}

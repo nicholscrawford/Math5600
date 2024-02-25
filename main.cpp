@@ -9,12 +9,14 @@
 
 int main(int, char **) {
 
-  int n = 3;
-  int y_single_col_idx = 2;   // 1 indexed
+  std::cout << "\nProblem 1:\n\n";
+
+  int n = 11;
+  int y_single_col_idx = 6;   // 1 indexed
   int y_linear_comb_col1 = 1; // 1 indexed
   int y_linear_comb_col2 = 3; // 1 indexed
-  int y_linear_comb_col1_coef = 0.08;
-  int y_linear_comb_col2_coef = 0.2;
+  int y_linear_comb_col1_coef = 0.0008;
+  int y_linear_comb_col2_coef = 10.2;
 
   std::vector<std::vector<double>> hilbertMatrix = get_hilbertian(n);
   printVec("Hilbertian Matrix: ", hilbertMatrix);
@@ -67,14 +69,23 @@ int main(int, char **) {
   std::vector<double> x1_cholesky = solve_cholesky(L_cholesky, y1);
   std::vector<double> x2_cholesky = solve_cholesky(L_cholesky, y2);
 
-  // Compute the error for all four solutions and print.
-  printVec("LU Error for single column: ", subtract(x1, x1_LU));
-  printVec("LU Error for linear combination: ", subtract(x2, x2_LU));
-  printVec("LUP Error for single column: ", subtract(x1, x1_LUP));
-  printVec("LUP Error for linear combination: ", subtract(x2, x2_LUP));
-  printVec("Cholesky Error for single column: ", subtract(x1, x1_cholesky));
-  printVec("Cholesky Error for linear combination: ",
-           subtract(x2, x2_cholesky));
+  printVec("LU Relative Error for single column: ",
+           magnitude(subtract(x1, x1_LU)) / magnitude(x1));
+  printVec("LU Relative Error for linear combination: ",
+           magnitude(subtract(x2, x2_LU)) / magnitude(x2));
+  printVec("LUP Relative Error for single column: ",
+           magnitude(subtract(x1, x1_LUP)) / magnitude(x1));
+  printVec("LUP Relative Error for linear combination: ",
+           magnitude(subtract(x2, x2_LUP)) / magnitude(x2));
+
+  std::cout << "\nProblem 2:\n\n";
+
+  printVec("Cholesky Relative Error for single column: ",
+           magnitude(subtract(x1, x1_cholesky)) / magnitude(x1));
+  printVec("Cholesky Relative Error for linear combination: ",
+           magnitude(subtract(x2, x2_cholesky)) / magnitude(x2));
+
+  std::cout << "\nProblem 3:\n\n";
 
   // Perform jacobi iteritive method on the discrete laplacian on a square
   auto pair = get_discrete_laplacian_matrix(2);

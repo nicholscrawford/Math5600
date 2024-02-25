@@ -22,3 +22,7 @@ void printVec(const std::string &label, const std::vector<double> &vec) {
   }
   std::cout << "\n";
 }
+void printVec(const std::string &label, double value) {
+  std::cout << "\033[1m" << label << "\033[0m" << std::endl;
+  std::cout << std::setprecision(4) << std::scientific << value << "\n";
+}

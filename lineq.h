@@ -97,4 +97,6 @@ get_discrete_laplacian_matrix(int size);
 
 double dot_product(const std::vector<double> &A, const std::vector<double> &B);
 
+double magnitude(const std::vector<double> &vec);
+
 #endif
