@@ -91,6 +91,42 @@ TEST(LineqTest, TestGetLUP) {
   }
 }
 
+TEST(LineqTest, TestGetLUPLarger) {
+  std::vector<std::vector<double>> A = {{1, 0, -1, 0, 0},
+                                        {0, 1, 0, 0, 0},
+                                        {0, 0, 1, 0, -1e-3},
+                                        {-200, 0, 0, 1, 0},
+                                        {0, 0, 1e-5, 0, 1}};
+  auto [L, U, P] = get_LUP(A);
+  ASSERT_EQ(L.size(), 5);
+  ASSERT_EQ(U.size(), 5);
+  ASSERT_EQ(P.size(), 5);
+  // Check if L is lower triangular
+  for (int i = 0; i < L.size(); i++) {
+    for (int j = i + 1; j < L[i].size(); j++) {
+      ASSERT_NEAR(L[i][j], 0, 1e-9);
+    }
+  }
+
+  // Check if U is upper triangular
+  for (int i = 0; i < U.size(); i++) {
+    for (int j = 0; j < i; j++) {
+      ASSERT_NEAR(U[i][j], 0, 1e-9);
+    }
+  }
+
+  // Check if PA = LU
+  auto PA = multiply(P, A);
+  auto LU = multiply(L, U);
+  for (int i = 0; i < PA.size(); i++) {
+    for (int j = 0; j < PA[i].size(); j++) {
+      ASSERT_NEAR(
+          PA[i][j], LU[i][j],
+          1e-9); // use ASSERT_NEAR because of potential floating point errors
+    }
+  }
+}
+
 TEST(LineqTest, TestSolveLU) {
   std::vector<std::vector<double>> L = {
       {1, 0, 0}, {0.5, 1, 0}, {1.0 / 3, 1, 1}};

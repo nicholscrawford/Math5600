@@ -109,18 +109,19 @@ get_LUP(std::vector<std::vector<double>> &A) {
   std::vector<std::vector<double>> L(n, std::vector<double>(n, 0.0));
   std::vector<std::vector<double>> U = A;
   std::vector<std::vector<double>> P(n, std::vector<double>(n, 0.0));
+  std::vector<double> max_elements(n, 0.0);
   for (int i = 0; i < n; ++i) {
     P[i][i] = 1.0;
+    max_elements[i] = *std::max_element(U[i].begin(), U[i].end());
   }
 
   // Perform LU decomposition with scaled partial pivoting
   for (int i = 0; i < n; ++i) { // For each element in the diagonal
-    // Find the pivot element and swap rows if necessary
+    // Find the pivot row and swap rows if necessary
     int pivot_row = i;
     double max_ratio = 0.0;
-    for (int j = i; j < n; ++j) {
-      auto max_it = std::max_element(U[j].begin(), U[j].end());
-      double ratio = std::abs(U[j][i]) / *max_it;
+    for (int j = i + 1; j < n; ++j) {
+      double ratio = std::abs(U[j][i]) / max_elements[j];
       if (ratio > max_ratio) {
         max_ratio = ratio;
         pivot_row = j;
@@ -129,6 +130,7 @@ get_LUP(std::vector<std::vector<double>> &A) {
     std::swap(U[i], U[pivot_row]);
     std::swap(P[i], P[pivot_row]);
     std::swap(L[i], L[pivot_row]);
+    std::swap(max_elements[i], max_elements[pivot_row]);
 
     double div_factor = 1.0 / U[i][i];
     L[i][i] = 1.0;
@@ -190,7 +192,13 @@ std::vector<double> solve_LUP(std::vector<std::vector<double>> &L,
   int n = L.size();
 
   // Forward substitution to solve Ly = Pb
-  std::vector<double> b = y;
+  std::vector<double> b(n, 0.0);
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      b[i] += P[i][j] * y[j];
+    }
+  }
+
   for (int i = 1; i < n; ++i) {
     for (int j = 0; j < i; ++j) {
       b[i] -= L[i][j] * b[j];
