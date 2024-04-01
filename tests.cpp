@@ -1,4 +1,5 @@
 #include "lineq.h"
+#include "rootfinding.h"
 #include <cmath>
 #include <gtest/gtest.h>
 #include <vector>
@@ -363,4 +364,28 @@ TEST(MultiplySparseTest, Test3) {
   std::vector<double> x = {1, 2, 3};
   std::vector<double> expected = {1, 2, 3};
   ASSERT_EQ(multiply_sparse(A, A_idxs, x), expected);
+}
+
+TEST(PolynomialDivisionTest, Test1) {
+  // (x^2 - 2x + 1) / (x - 1) = (x - 1)
+  std::vector<double> coefficients = {1, -2, 1};
+  std::vector<double> expected = {-1, 1};
+  double root = 1.0;
+  ASSERT_EQ(polynomialDivision(coefficients, root), expected);
+}
+
+TEST(PolynomialDivisionTest, Test2) {
+  // (x^3 - 3x^2 + 3x - 1) / (x - 1) = (x^2 - 2x + 1)
+  std::vector<double> coefficients = {-1, 3, -3, 1};
+  std::vector<double> expected = {1, -2, 1};
+  double root = 1.0;
+  ASSERT_EQ(polynomialDivision(coefficients, root), expected);
+}
+
+TEST(PolynomialDivisionTest, Test3) {
+  // (x^4 + 2x^3 - 3x^2 - 4x + 4) / (x + 2) = (x^3 - 3x + 2)
+  std::vector<double> coefficients = {4, -4, -3, 2, 1};
+  std::vector<double> expected = {2, -3, 0, 1};
+  double root = -2.0;
+  ASSERT_EQ(polynomialDivision(coefficients, root), expected);
 }
