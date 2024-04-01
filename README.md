@@ -2,7 +2,7 @@
 
 ## Description
 
-Code for the numerical analysis class. Solving linear systems of equations using elimination with pivoting. Solving systems of linear equations with iterative methods, (great for sparse problems).
+Code for the numerical analysis class. Solving linear systems of equations using elimination with pivoting. Solving systems of linear equations with iterative methods (great for sparse problems). Finding roots by various methods, and finding all roots by Horner's + Newtons.
 
 ## Installation
 
@@ -27,4 +27,11 @@ Run linear equation solver which demos the methods (in build dir).
 ./linear_solver
 ```
 
-[Example Output](example_output.txt)
+Run the rootfinding solver which demos methods (in build dir).
+```
+./rootfinding
+```
+
+[Linear Solver Example Output](example_output.txt)
+
+[Rootfinding Example Output](rootfinding_sample_output.md)
