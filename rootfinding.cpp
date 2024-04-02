@@ -233,6 +233,14 @@ void run_all_rootfinding_methods(std::function<double(double)> function,
             << "\t\t\t Number of Itterations:" << numIterations << "\n";
 }
 
+/**
+ * Calculates the value of a polynomial function at a given point.
+ *
+ * @param coefficients The coefficients of the polynomial in ascending order of
+ * degree.
+ * @param x The value at which to evaluate the polynomial.
+ * @return The value of the polynomial at the given point.
+ */
 double polynomial(std::vector<double> coefficients, double x) {
   double result = 0.0;
   for (int i = 0; i < coefficients.size(); i++) {
@@ -241,6 +249,13 @@ double polynomial(std::vector<double> coefficients, double x) {
   return result;
 }
 
+/**
+ * Calculates the derivative of a polynomial function at a given point.
+ *
+ * @param coefficients The coefficients of the polynomial in descending order.
+ * @param x The point at which to evaluate the derivative.
+ * @return The value of the derivative at the given point.
+ */
 double polynomial_prime(std::vector<double> coefficients, double x) {
   double result = 0.0;
   for (int i = 1; i < coefficients.size(); i++) {
@@ -249,6 +264,15 @@ double polynomial_prime(std::vector<double> coefficients, double x) {
   return result;
 }
 
+/**
+ * Performs polynomial division on the given coefficients with the specified
+ * root of the polynomial.
+ *
+ * @param coefficients The coefficients of the polynomial in descending order of
+ * degree.
+ * @param root The root at which to perform the division.
+ * @return The quotient of the polynomial division.
+ */
 std::vector<double> polynomialDivision(const std::vector<double> &coefficients,
                                        double root) {
   int n = coefficients.size();
@@ -268,6 +292,24 @@ std::vector<double> polynomialDivision(const std::vector<double> &coefficients,
   return quotient;
 }
 
+/**
+ * @brief Performs Newton-Horner's method to find the roots of a polynomial.
+ *
+ * This function takes a vector of polynomial coefficients, an initial guess for
+ * the root, a tolerance value, a maximum number of iterations, and a reference
+ * to store the number of iterations performed. It iteratively applies
+ * Newton-Horner's method to find the all roots of the polynomial. The roots are
+ * stored in a vector and returned.
+ *
+ * @param coefficients The vector of polynomial coefficients.
+ * @param x0 The initial guess for the root.
+ * @param tolerance The tolerance value to determine convergence.
+ * @param maxIterations The maximum number of iterations allowed.
+ * @param[out] numIterations The reference to store the number of iterations
+ * performed.
+ * @return std::vector<double> The vector containing the roots of the
+ * polynomial.
+ */
 std::vector<double> newton_horners(std::vector<double> coefficients, double x0,
                                    double tolerance, int maxIterations,
                                    int &numIterations) {
