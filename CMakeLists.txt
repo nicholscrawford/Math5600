@@ -15,6 +15,7 @@ set(SOURCES
 # Create the executable
 add_executable(rootfinding ${SOURCES} main.cpp)
 add_executable(linear_solver ${SOURCES} PE_1_main.cpp)
+add_executable(tchebyshev ${SOURCES} tchebyshev.cpp)
 
 # Optional: Add compiler flags, such as C++ version and optimization level
 # For example, uncomment the line below to use C++17
