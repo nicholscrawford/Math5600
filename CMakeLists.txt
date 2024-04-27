@@ -10,6 +10,7 @@ set(SOURCES
   rootfinding.cpp
   lineq.cpp
   utils.cpp
+  combinations.cpp
 )
 
 # Create the executable

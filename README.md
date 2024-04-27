@@ -32,6 +32,13 @@ Run the rootfinding solver which demos methods (in build dir).
 ./rootfinding
 ```
 
+Run the combined demo for quadrature and interpolation (in build dir).
+```
+./tchebyshev
+```
+
 [Linear Solver Example Output](example_output.txt)
 
 [Rootfinding Example Output](rootfinding_sample_output.md)
+
+[Tchebyshev Example Output](tchebyshev_sample_output.md)

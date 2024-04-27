@@ -28,5 +28,9 @@ std::vector<double> newton_horners(std::vector<double> coefficients, double x0,
                                    double tolerance, int maxIterations,
                                    int &numIterations);
 
+double polynomial(std::vector<double> coefficients, double x);
+
+double polynomial_prime(std::vector<double> coefficients, double x);
+
 std::vector<double> polynomialDivision(const std::vector<double> &coefficients,
                                        double root);
